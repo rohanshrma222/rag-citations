@@ -4,3 +4,6 @@ pymupdf==1.26.6
 # Phase 3 — embeddings (raw Ollama REST API + vector math)
 requests==2.34.1
 numpy==2.3.5
+
+# Phase 4 — vector storage (vec0 virtual table)
+sqlite-vec==0.1.9
