@@ -174,7 +174,8 @@ def get_chunk(conn: sqlite3.Connection, rowid: int) -> dict | None:
 def keyword_search(conn: sqlite3.Connection, query: str, k: int = 5) -> list[dict]:
     """BM25 keyword search over chunks_fts, joined back to chunk metadata."""
     rows = conn.execute("""
-        SELECT c.rowid, c.chunk_id, c.page_number, c.text, bm25(chunks_fts) AS score
+        SELECT c.rowid, c.chunk_id, c.source, c.page_number, c.text,
+               bm25(chunks_fts) AS score
         FROM chunks_fts f
         JOIN chunks c ON c.rowid = f.rowid
         WHERE chunks_fts MATCH ?
@@ -187,7 +188,7 @@ def keyword_search(conn: sqlite3.Connection, query: str, k: int = 5) -> list[dic
 def vector_search(conn: sqlite3.Connection, vector: list[float], k: int = 5) -> list[dict]:
     """K-nearest-neighbour search over chunks_vec, joined back to chunk metadata."""
     rows = conn.execute("""
-        SELECT c.rowid, c.chunk_id, c.page_number, c.text, v.distance
+        SELECT c.rowid, c.chunk_id, c.source, c.page_number, c.text, v.distance
         FROM chunks_vec v
         JOIN chunks c ON c.rowid = v.rowid
         WHERE v.embedding MATCH ? AND k = ?

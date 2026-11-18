@@ -166,6 +166,15 @@ def selftest() -> bool:
     results.append(("rowid roundtrip",
                     store.get_chunk(conn, vhits[0]["rowid"])["text"] == vhits[0]["text"]))
 
+    # Both retrievers must return every field downstream phases read. Phase 7
+    # needs `source` to resolve a citation to a file; it was missing from these
+    # SELECTs and hand-made test fixtures hid it, so assert the real shape here.
+    required = {"rowid", "chunk_id", "source", "page_number", "text"}
+    results.append(("vector_search returns full chunk shape",
+                    required <= set(vhits[0].keys())))
+    results.append(("keyword_search returns full chunk shape",
+                    required <= set(hits[0].keys())))
+
     # re-inserting the same chunks must skip, not duplicate
     again = store.insert_chunks(conn, corpus)
     results.append(("idempotent re-ingest", again == {"inserted": 0, "skipped": 5}))
