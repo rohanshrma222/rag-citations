@@ -66,9 +66,16 @@ def fts_query(text: str) -> str:
 # the two retrievers
 # --------------------------------------------------------------------------- #
 
-def vector_search(conn, query: str, k: int = CANDIDATES) -> list[dict]:
-    """Embed the query and return the k nearest chunks, best first."""
-    return store.vector_search(conn, embed_query(query), k=k)
+def vector_search(conn, query: str, k: int = CANDIDATES,
+                  query_vector: list[float] | None = None) -> list[dict]:
+    """Embed the query and return the k nearest chunks, best first.
+
+    `query_vector` lets a caller supply an already-computed embedding. Evaluation
+    runs the same question through several configurations and several values of k,
+    and re-embedding it each time is the dominant cost of a sweep.
+    """
+    vector = embed_query(query) if query_vector is None else query_vector
+    return store.vector_search(conn, vector, k=k)
 
 
 def keyword_search(conn, query: str, k: int = CANDIDATES) -> list[dict]:
@@ -109,10 +116,12 @@ def reciprocal_rank_fusion(ranked_lists: dict[str, list[dict]],
 
 
 def hybrid_search(conn, query: str, k: int = CANDIDATES,
-                  candidates: int = CANDIDATES) -> list[dict]:
+                  candidates: int = CANDIDATES,
+                  query_vector: list[float] | None = None) -> list[dict]:
     """Run both retrievers and return the top k fused results."""
     lists = {
-        "vector": vector_search(conn, query, k=candidates),
+        "vector": vector_search(conn, query, k=candidates,
+                                query_vector=query_vector),
         "keyword": keyword_search(conn, query, k=candidates),
     }
     return reciprocal_rank_fusion(lists)[:k]
