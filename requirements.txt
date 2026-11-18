@@ -7,3 +7,6 @@ numpy==2.3.5
 
 # Phase 4 — vector storage (vec0 virtual table)
 sqlite-vec==0.1.9
+
+# Phase 6 — cross-encoder reranking (pulls torch, ~250MB CPU wheel)
+sentence-transformers==6.3.0
