@@ -13,3 +13,6 @@ sentence-transformers==6.3.0
 
 # Phase 7 — grounded generation uses the same Ollama REST client as Phase 3
 # (no new Python dependency; requires `ollama pull llama3.1:8b`)
+
+# Phase 9 — graph orchestration
+langgraph==1.2.22
