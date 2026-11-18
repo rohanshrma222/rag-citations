@@ -43,10 +43,16 @@ class OllamaError(RuntimeError):
 # transport
 # --------------------------------------------------------------------------- #
 
-def _post(path: str, payload: dict) -> tuple[int, dict]:
-    """POST JSON to Ollama. Returns (status_code, parsed_body)."""
+def _post(path: str, payload: dict, timeout: int | None = None) -> tuple[int, dict]:
+    """POST JSON to Ollama. Returns (status_code, parsed_body).
+
+    `timeout` defaults to TIMEOUT, which suits embedding calls. Generation needs
+    far longer: an 8B model on CPU can spend minutes on one answer, so Phase 7
+    passes its own.
+    """
+    timeout = TIMEOUT if timeout is None else timeout
     try:
-        resp = requests.post(f"{OLLAMA_URL}{path}", json=payload, timeout=TIMEOUT)
+        resp = requests.post(f"{OLLAMA_URL}{path}", json=payload, timeout=timeout)
     except requests.exceptions.ConnectionError as exc:
         raise OllamaError(
             f"Cannot reach Ollama at {OLLAMA_URL}.\n"
@@ -55,7 +61,7 @@ def _post(path: str, payload: dict) -> tuple[int, dict]:
             f"  Model:    ollama pull {MODEL}"
         ) from exc
     except requests.exceptions.Timeout as exc:
-        raise OllamaError(f"Ollama timed out after {TIMEOUT}s on {path}.") from exc
+        raise OllamaError(f"Ollama timed out after {timeout}s on {path}.") from exc
 
     try:
         body = resp.json()
